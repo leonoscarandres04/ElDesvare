@@ -8,23 +8,33 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ucompensar.eldesvare.sensors.SensorLuzHelper
-import com.ucompensar.eldesvare.ui.navigation.AppNavigation
 import com.ucompensar.eldesvare.ui.theme.ElDesvareTheme
+import com.ucompensar.eldesvare.ui.theme.navigation.AppNavigation
+import com.ucompensar.eldesvare.viewmodel.DesvareViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // 1. Leemos el sensor de luz en tiempo real (si no hay sensor, usa el modo del sistema)
+            val desvareViewModel: DesvareViewModel = viewModel()
+
+            val temaPreferencia by desvareViewModel.temaPreferencia.collectAsState()
+
             val modoOscuroPorSensor by SensorLuzHelper.observarModoOscuro(this)
                 .collectAsState(initial = isSystemInDarkTheme())
 
-            // 2. Le pasamos el estado al tema principal de la app
-            ElDesvareTheme(darkTheme = modoOscuroPorSensor) {
+            val usarModoOscuro = when (temaPreferencia) {
+                1 -> false
+                2 -> true
+                else -> modoOscuroPorSensor
+            }
+
+            ElDesvareTheme(darkTheme = usarModoOscuro) {
                 Surface {
-                    AppNavigation()
+                    AppNavigation(desvareViewModel = desvareViewModel)
                 }
             }
         }

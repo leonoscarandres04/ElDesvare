@@ -1,4 +1,4 @@
-package com.ucompensar.eldesvare.ui.navigation
+package com.ucompensar.eldesvare.ui.theme.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -8,8 +8,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ucompensar.eldesvare.ui.screens.DetalleLugarScreen
-import com.ucompensar.eldesvare.ui.screens.MapaScreen
 import com.ucompensar.eldesvare.ui.screens.RecomendarLugarScreen
+import com.ucompensar.eldesvare.ui.theme.screens.DetalleLugarScreen
+import com.ucompensar.eldesvare.ui.theme.screens.MapaScreen
+import com.ucompensar.eldesvare.ui.theme.screens.OpcionesScreen
+import com.ucompensar.eldesvare.ui.theme.screens.RecomendarLugarScreen
 import com.ucompensar.eldesvare.viewmodel.DesvareViewModel
 
 @Composable
@@ -28,6 +31,9 @@ fun AppNavigation(desvareViewModel: DesvareViewModel = viewModel()) {
                 },
                 onIrARecomendar = {
                     navController.navigate("recomendar")
+                },
+                onIrAOpciones = {
+                    navController.navigate("opciones")
                 }
             )
         }
@@ -46,6 +52,13 @@ fun AppNavigation(desvareViewModel: DesvareViewModel = viewModel()) {
 
         composable("recomendar") {
             RecomendarLugarScreen(
+                viewModel = desvareViewModel,
+                onVolver = { navController.popBackStack() }
+            )
+        }
+
+        composable("opciones") {
+            OpcionesScreen(
                 viewModel = desvareViewModel,
                 onVolver = { navController.popBackStack() }
             )

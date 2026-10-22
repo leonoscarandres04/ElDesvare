@@ -1,4 +1,4 @@
-package com.ucompensar.eldesvare.ui.screens
+package com.ucompensar.eldesvare.ui.theme.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -39,6 +40,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -83,7 +85,8 @@ import com.ucompensar.eldesvare.viewmodel.DesvareViewModel
 fun MapaScreen(
     viewModel: DesvareViewModel,
     onIrADetalle: (Int) -> Unit,
-    onIrARecomendar: () -> Unit
+    onIrARecomendar: () -> Unit,
+    onIrAOpciones: () -> Unit
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
@@ -98,7 +101,6 @@ fun MapaScreen(
 
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    // Verificamos si hay permisos concedidos en tiempo real
     val tienePermisoUbicacion = ContextCompat.checkSelfPermission(
         context, Manifest.permission.ACCESS_FINE_LOCATION
     ) == PackageManager.PERMISSION_GRANTED
@@ -139,15 +141,23 @@ fun MapaScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("El Desvare - UCompensar", fontWeight = FontWeight.Bold)
+                        Text("El Desvare", fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.titleLarge)
                         Text(
-                            "Talleres y parqueaderos en tu ruta",
-                            style = MaterialTheme.typography.labelSmall
+                            "Rutas UCompensar",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
+                actions = {
+                    IconButton(onClick = onIrAOpciones) {
+                        Icon(Icons.Default.Settings, contentDescription = "Configuración")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                    actionIconContentColor = MaterialTheme.colorScheme.primary
                 )
             )
         },
@@ -155,7 +165,9 @@ fun MapaScreen(
             ExtendedFloatingActionButton(
                 onClick = onIrARecomendar,
                 icon = { Icon(Icons.Default.AddLocationAlt, contentDescription = null) },
-                text = { Text("Recomendar lugar") }
+                text = { Text("Recomendar") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             )
         }
     ) { paddingValues ->
@@ -309,7 +321,6 @@ fun MapaScreen(
                         )
                     }
 
-                    // Activamos la visualización del usuario si hay permisos de GPS
                     val mapProperties = MapProperties(isMyLocationEnabled = tienePermisoUbicacion)
 
                     Box(modifier = Modifier.fillMaxSize()) {
