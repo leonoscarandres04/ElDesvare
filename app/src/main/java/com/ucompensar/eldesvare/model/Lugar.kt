@@ -84,18 +84,18 @@ object DatosIniciales {
         ),
         Lugar(
             id = 4,
-            nombre = "Parqueadero Cubierto La Magdalena",
+            nombre = "Autolavado y Parqueadero Detailing",
             tipo = TipoLugar.PARQUEADERO,
             vehiculosAtendidos = listOf(TipoVehiculo.CARRO, TipoVehiculo.MOTO),
-            direccion = "Carrera 17 # 31-50",
-            horario = "Lunes a Sábado: 6:00 AM - 10:00 PM",
-            telefono = "3112233445",
-            latitud = 4.6208,
-            longitud = -74.0718,
-            rutaReferencia = "Ruta Calle 32 / Carrera 17",
+            direccion = "Carrera 68C # 74A-02",
+            horario = "Horario por confirmar",
+            telefono = "3006542494",
+            latitud = 4.6810236,
+            longitud = -74.0854725,
+            rutaReferencia = "Ruta Av. 68 / Calle 74 (cerca al C.C. Metrópolis)",
             verificado = true,
             recomendadoPor = "Andrés Morales (Equipo)",
-            notas = "A media cuadra de la sede Calle 32. Vigilancia permanente bajo techo."
+            notas = "Autolavado con servicio de parqueo mensual para motos, carros y camiones. También atienden por WhatsApp al 321 202 7782."
         ),
         // 5 y 6: Precargados por Stiven Cortés
         Lugar(
