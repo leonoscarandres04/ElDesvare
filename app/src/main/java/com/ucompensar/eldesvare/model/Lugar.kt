@@ -69,18 +69,18 @@ object DatosIniciales {
         // 3 y 4: Precargados por Andrés Morales
         Lugar(
             id = 3,
-            nombre = "Motoservicio y Eléctricos Teusaquillo",
+            nombre = "Abellantas Las Ferias",
             tipo = TipoLugar.TALLER,
-            vehiculosAtendidos = listOf(TipoVehiculo.MOTO, TipoVehiculo.BICICLETA),
-            direccion = "Calle 32 # 16-45",
-            horario = "Lunes a Viernes: 7:00 AM - 7:00 PM",
-            telefono = "3201122334",
-            latitud = 4.6215,
-            longitud = -74.0710,
-            rutaReferencia = "Ruta Calle 32 / Av. Caracas",
+            vehiculosAtendidos = listOf(TipoVehiculo.CARRO, TipoVehiculo.MOTO),
+            direccion = "Carrera 68C # 73A-07",
+            horario = "Horario por confirmar",
+            telefono = "",
+            latitud = 4.6808763,
+            longitud = -74.085731,
+            rutaReferencia = "Ruta Av. 68 / Calle 74 (detrás de Alkosto de la 68)",
             verificado = true,
             recomendadoPor = "Andrés Morales (Equipo)",
-            notas = "Especialistas en guayas de clutch/acelerador, kit de arrastre y despinche de motos."
+            notas = "Montallantas con montaje automático, vulcanización de llantas estalladas y compra y venta de llantas nuevas y de segunda. Reciben tarjeta."
         ),
         Lugar(
             id = 4,
