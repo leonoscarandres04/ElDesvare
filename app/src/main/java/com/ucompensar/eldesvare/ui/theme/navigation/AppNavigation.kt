@@ -7,8 +7,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.ucompensar.eldesvare.ui.screens.DetalleLugarScreen
-import com.ucompensar.eldesvare.ui.screens.RecomendarLugarScreen
 import com.ucompensar.eldesvare.ui.theme.screens.DetalleLugarScreen
 import com.ucompensar.eldesvare.ui.theme.screens.MapaScreen
 import com.ucompensar.eldesvare.ui.theme.screens.OpcionesScreen

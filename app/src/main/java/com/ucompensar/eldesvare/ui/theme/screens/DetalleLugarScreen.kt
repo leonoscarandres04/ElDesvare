@@ -1,4 +1,4 @@
-package com.ucompensar.eldesvare.ui.screens
+package com.ucompensar.eldesvare.ui.theme.screens
 
 import android.content.Intent
 import android.net.Uri
