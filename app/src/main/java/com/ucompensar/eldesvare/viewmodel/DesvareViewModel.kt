@@ -30,8 +30,16 @@ class DesvareViewModel(application: Application) : AndroidViewModel(application)
     private val _uiState = MutableStateFlow(DesvareUiState())
     val uiState: StateFlow<DesvareUiState> = _uiState.asStateFlow()
 
+    private val _temaPreferencia = MutableStateFlow(repositorio.obtenerPreferenciaTema())
+    val temaPreferencia: StateFlow<Int> = _temaPreferencia.asStateFlow()
+
     init {
         cargarLugares()
+    }
+
+    fun cambiarTema(nuevoTema: Int) {
+        repositorio.guardarPreferenciaTema(nuevoTema)
+        _temaPreferencia.value = nuevoTema
     }
 
     private fun cargarLugares() {
