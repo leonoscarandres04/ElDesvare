@@ -22,8 +22,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLocationAlt
 import androidx.compose.material.icons.filled.Explore
@@ -61,7 +64,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -162,13 +167,16 @@ fun MapaScreen(
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onIrARecomendar,
-                icon = { Icon(Icons.Default.AddLocationAlt, contentDescription = null) },
-                text = { Text("Recomendar") },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            )
+            // En la brújula se oculta para no tapar la distancia ni el botón de detalles
+            if (modoVista != 2) {
+                ExtendedFloatingActionButton(
+                    onClick = onIrARecomendar,
+                    icon = { Icon(Icons.Default.AddLocationAlt, contentDescription = null) },
+                    text = { Text("Recomendar") },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
     ) { paddingValues ->
         Column(
@@ -241,59 +249,15 @@ fun MapaScreen(
                 }
             }
 
-            lugaresFiltrados.firstOrNull()?.let { masCercano ->
-                val distanciaMasCercano = BrujulaYDistanciaHelper.calcularDistanciaMetros(
-                    uiState.latitudUsuario,
-                    uiState.longitudUsuario,
-                    masCercano.latitud,
-                    masCercano.longitud
-                )
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 4.dp)
-                        .clickable { onIrADetalle(masCercano.id) },
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "MÁS CERCANO EN TU RUTA (${BrujulaYDistanciaHelper.formatearDistancia(distanciaMasCercano)})",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = masCercano.nombre,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "${masCercano.direccion} • ${masCercano.rutaReferencia}",
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        BadgeVerificacion(verificado = masCercano.verificado)
-                    }
-                }
-            }
-
             when (modoVista) {
                 0 -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(12.dp),
+                        // Espacio extra abajo para que el botón "Recomendar" no tape la última tarjeta
+                        contentPadding = PaddingValues(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 88.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        items(lugaresFiltrados) { lugar ->
+                        itemsIndexed(lugaresFiltrados) { indice, lugar ->
                             val distancia = BrujulaYDistanciaHelper.calcularDistanciaMetros(
                                 uiState.latitudUsuario,
                                 uiState.longitudUsuario,
@@ -303,6 +267,7 @@ fun MapaScreen(
                             TarjetaLugarItem(
                                 lugar = lugar,
                                 distanciaTexto = BrujulaYDistanciaHelper.formatearDistancia(distancia),
+                                esMasCercano = indice == 0,
                                 onClick = { onIrADetalle(lugar.id) },
                                 onUsarBrujula = {
                                     viewModel.seleccionarLugarParaBrujula(lugar)
@@ -323,11 +288,17 @@ fun MapaScreen(
 
                     val mapProperties = MapProperties(isMyLocationEnabled = tienePermisoUbicacion)
 
+                    // Alto de la tarjeta "Más cercano" para correr el botón de mi ubicación debajo de ella
+                    var altoTarjetaPx by remember { mutableIntStateOf(0) }
+                    val altoTarjeta = with(LocalDensity.current) { altoTarjetaPx.toDp() }
+
                     Box(modifier = Modifier.fillMaxSize()) {
                         GoogleMap(
                             modifier = Modifier.fillMaxSize(),
                             cameraPositionState = cameraPositionState,
-                            properties = mapProperties
+                            properties = mapProperties,
+                            // Baja el botón de mi ubicación y sube los de zoom para que nada los tape
+                            contentPadding = PaddingValues(top = altoTarjeta + 24.dp, bottom = 88.dp)
                         ) {
                             lugaresFiltrados.forEach { lugar ->
                                 Marker(
@@ -339,6 +310,24 @@ fun MapaScreen(
                                     onInfoWindowClick = { onIrADetalle(lugar.id) }
                                 )
                             }
+                        }
+
+                        lugaresFiltrados.firstOrNull()?.let { masCercano ->
+                            val distanciaMasCercano = BrujulaYDistanciaHelper.calcularDistanciaMetros(
+                                uiState.latitudUsuario,
+                                uiState.longitudUsuario,
+                                masCercano.latitud,
+                                masCercano.longitud
+                            )
+                            TarjetaMasCercano(
+                                lugar = masCercano,
+                                distanciaTexto = BrujulaYDistanciaHelper.formatearDistancia(distanciaMasCercano),
+                                onClick = { onIrADetalle(masCercano.id) },
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .padding(12.dp)
+                                    .onSizeChanged { altoTarjetaPx = it.height }
+                            )
                         }
                     }
                 }
@@ -360,9 +349,11 @@ fun MapaScreen(
                         )
                         val rotacionFlecha = (rumboDestino - azimutDispositivo + 360f) % 360f
 
+                        // Con scroll para que la distancia y el botón se vean en pantallas pequeñas
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
                                 .padding(24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
@@ -427,19 +418,78 @@ fun MapaScreen(
 }
 
 @Composable
+fun TarjetaMasCercano(
+    lugar: Lugar,
+    distanciaTexto: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "MÁS CERCANO EN TU RUTA ($distanciaTexto)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = lugar.nombre,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${lugar.direccion} • ${lugar.rutaReferencia}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            BadgeVerificacion(verificado = lugar.verificado)
+        }
+    }
+}
+
+@Composable
 fun TarjetaLugarItem(
     lugar: Lugar,
     distanciaTexto: String,
     onClick: () -> Unit,
-    onUsarBrujula: () -> Unit
+    onUsarBrujula: () -> Unit,
+    esMasCercano: Boolean = false
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = if (esMasCercano) {
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        } else {
+            CardDefaults.cardColors()
+        }
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
+            if (esMasCercano) {
+                Text(
+                    text = "MÁS CERCANO EN TU RUTA",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
