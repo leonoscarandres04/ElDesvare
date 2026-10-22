@@ -66,7 +66,7 @@ object DatosIniciales {
             recomendadoPor = "Oscar León (Equipo)",
             notas = "Tarifa económica con carnet estudiantil, guardan cascos y tienen bicicletero cubierto."
         ),
-        // 3 y 4: Precargados por Andrés Morales
+        // 3 y 4: Precargados por Andres Morales
         Lugar(
             id = 3,
             nombre = "Abellantas Las Ferias",
@@ -79,7 +79,7 @@ object DatosIniciales {
             longitud = -74.085731,
             rutaReferencia = "Ruta Av. 68 / Calle 74 (detrás de Alkosto de la 68)",
             verificado = true,
-            recomendadoPor = "Andrés Morales (Equipo)",
+            recomendadoPor = "Andres Morales (Equipo)",
             notas = "Montallantas con montaje automático, vulcanización de llantas estalladas y compra y venta de llantas nuevas y de segunda. Reciben tarjeta."
         ),
         Lugar(
@@ -92,9 +92,9 @@ object DatosIniciales {
             telefono = "3006542494",
             latitud = 4.6810236,
             longitud = -74.0854725,
-            rutaReferencia = "Ruta Av. 68 / Calle 74 (cerca al C.C. Metrópolis)",
+            rutaReferencia = "Ruta Av. 68 / Calle 74 (cerca a Alkosto Av. 68)",
             verificado = true,
-            recomendadoPor = "Andrés Morales (Equipo)",
+            recomendadoPor = "Andres Morales (Equipo)",
             notas = "Autolavado con servicio de parqueo mensual para motos, carros y camiones. También atienden por WhatsApp al 321 202 7782."
         ),
         // 5 y 6: Precargados por Stiven Cortés
