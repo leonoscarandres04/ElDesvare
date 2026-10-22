@@ -12,6 +12,14 @@ class PreferenciasLocalesRepository(context: Context) {
 
     private val prefs = context.getSharedPreferences("el_desvare_offline_db", Context.MODE_PRIVATE)
 
+    fun obtenerPreferenciaTema(): Int {
+        return prefs.getInt("preferencia_tema", 0)
+    }
+
+    fun guardarPreferenciaTema(tema: Int) {
+        prefs.edit().putInt("preferencia_tema", tema).apply()
+    }
+
     fun obtenerLugares(): List<Lugar> {
         val jsonString = prefs.getString("lugares_guardados", null)
         if (jsonString.isNullOrEmpty()) {
