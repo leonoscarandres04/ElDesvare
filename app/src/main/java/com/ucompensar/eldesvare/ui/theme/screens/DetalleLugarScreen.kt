@@ -70,6 +70,9 @@ fun DetalleLugarScreen(
         return
     }
 
+    val tieneTelefono = lugar.telefono.isNotBlank()
+    val telefonoTexto = if (tieneTelefono) lugar.telefono else "No disponible"
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -144,7 +147,7 @@ fun DetalleLugarScreen(
                     Text("Dirección: ${lugar.direccion}", fontWeight = FontWeight.Medium)
                     Text("Ruta de referencia: ${lugar.rutaReferencia}")
                     Text("Horario: ${lugar.horario}")
-                    Text("Teléfono: ${lugar.telefono}")
+                    Text("Teléfono: $telefonoTexto")
                     Text("Vehículos que atiende: ${lugar.vehiculosAtendidos.joinToString { it.etiqueta }}")
                     Text("Recomendado por: ${lugar.recomendadoPor}")
                     HorizontalDivider()
@@ -173,6 +176,8 @@ fun DetalleLugarScreen(
                         }
                         context.startActivity(intent)
                     },
+                    // Sin teléfono registrado no hay a quién llamar
+                    enabled = tieneTelefono,
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(Icons.Default.Call, contentDescription = null)
@@ -210,7 +215,7 @@ fun DetalleLugarScreen(
                         Te comparto este punto desde la app El Desvare (UCompensar):
                         ${lugar.nombre} (${lugar.tipo.etiqueta})
                         Dirección: ${lugar.direccion}
-                        Teléfono: ${lugar.telefono}
+                        Teléfono: $telefonoTexto
                         Mapa: https://maps.google.com/?q=${lugar.latitud},${lugar.longitud}
                     """.trimIndent()
 
