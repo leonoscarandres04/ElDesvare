@@ -67,6 +67,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -96,6 +97,12 @@ fun MapaScreen(
         .collectAsState(initial = 0f)
 
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    // Verificamos si hay permisos concedidos en tiempo real
+    val tienePermisoUbicacion = ContextCompat.checkSelfPermission(
+        context, Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
+
     val launcherPermisoGps = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permisos ->
@@ -111,11 +118,7 @@ fun MapaScreen(
     }
 
     LaunchedEffect(Unit) {
-        val tienePermiso = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-        if (tienePermiso) {
+        if (tienePermisoUbicacion) {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 location?.let {
                     viewModel.actualizarUbicacionUsuario(it.latitude, it.longitude)
@@ -305,10 +308,15 @@ fun MapaScreen(
                             14f
                         )
                     }
+
+                    // Activamos la visualización del usuario si hay permisos de GPS
+                    val mapProperties = MapProperties(isMyLocationEnabled = tienePermisoUbicacion)
+
                     Box(modifier = Modifier.fillMaxSize()) {
                         GoogleMap(
                             modifier = Modifier.fillMaxSize(),
-                            cameraPositionState = cameraPositionState
+                            cameraPositionState = cameraPositionState,
+                            properties = mapProperties
                         ) {
                             lugaresFiltrados.forEach { lugar ->
                                 Marker(
