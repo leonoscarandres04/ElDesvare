@@ -48,11 +48,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.ucompensar.eldesvare.model.DatosIniciales
+import com.ucompensar.eldesvare.model.Lugar
+import com.ucompensar.eldesvare.ui.theme.ElDesvareTheme
 import com.ucompensar.eldesvare.viewmodel.DesvareViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleLugarScreen(
     lugarId: Int,
@@ -62,6 +65,32 @@ fun DetalleLugarScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val lugar = uiState.lugares.find { it.id == lugarId }
+
+    DetalleLugarContent(
+        lugar = lugar,
+        onVolver = onVolver,
+        onReportarFalso = {
+            if (lugar != null) {
+                viewModel.reportarLugarFalso(lugar.id)
+                Toast.makeText(
+                    context,
+                    "Lugar reportado. Se ha ocultado del mapa por seguridad.",
+                    Toast.LENGTH_LONG
+                ).show()
+                onVolver()
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DetalleLugarContent(
+    lugar: Lugar?,
+    onVolver: () -> Unit,
+    onReportarFalso: () -> Unit = {}
+) {
+    val context = LocalContext.current
 
     if (lugar == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -236,15 +265,7 @@ fun DetalleLugarScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             TextButton(
-                onClick = {
-                    viewModel.reportarLugarFalso(lugar.id)
-                    Toast.makeText(
-                        context,
-                        "Lugar reportado. Se ha ocultado del mapa por seguridad.",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    onVolver()
-                },
+                onClick = onReportarFalso,
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
@@ -253,5 +274,53 @@ fun DetalleLugarScreen(
                 Text("Reportar lugar falso o cerrado")
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Detalle Lugar - Verificado")
+@Composable
+fun DetalleLugarVerificadoPreview() {
+    ElDesvareTheme {
+        DetalleLugarContent(
+            lugar = DatosIniciales.lugaresPrecargados.first(),
+            onVolver = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Detalle Lugar - Sin Verificar")
+@Composable
+fun DetalleLugarSinVerificarPreview() {
+    val lugarSinVerificar = DatosIniciales.lugaresPrecargados.first().copy(
+        verificado = false,
+        nombre = "Taller El Chispazo (Sin verificar)"
+    )
+    ElDesvareTheme {
+        DetalleLugarContent(
+            lugar = lugarSinVerificar,
+            onVolver = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Detalle Lugar - No Encontrado")
+@Composable
+fun DetalleLugarNoEncontradoPreview() {
+    ElDesvareTheme {
+        DetalleLugarContent(
+            lugar = null,
+            onVolver = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Detalle Lugar - Modo Oscuro")
+@Composable
+fun DetalleLugarDarkModePreview() {
+    ElDesvareTheme(darkTheme = true) {
+        DetalleLugarContent(
+            lugar = DatosIniciales.lugaresPrecargados.first(),
+            onVolver = {}
+        )
     }
 }
