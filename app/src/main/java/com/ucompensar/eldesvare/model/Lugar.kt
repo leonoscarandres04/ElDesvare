@@ -1,5 +1,10 @@
 package com.ucompensar.eldesvare.model
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
+import com.ucompensar.eldesvare.ui.theme.ElDesvareTheme
+import com.ucompensar.eldesvare.ui.theme.screens.TarjetaLugarItem
+
 enum class TipoLugar(val etiqueta: String) {
     TALLER("Taller"),
     PARQUEADERO("Parqueadero")
@@ -129,4 +134,30 @@ object DatosIniciales {
             notas = "Cuenta con bomba de aire gratuita, parches y candados de alta seguridad."
         )
     )
+}
+
+@Preview(showBackground = true, name = "Componente - Tarjeta Lugar (Modo Claro)")
+@Composable
+fun LugarTarjetaPreview() {
+    ElDesvareTheme {
+        TarjetaLugarItem(
+            lugar = DatosIniciales.lugaresPrecargados.first(),
+            distanciaTexto = "250 m",
+            onClick = {},
+            onUsarBrujula = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Componente - Tarjeta Lugar (Modo Oscuro)")
+@Composable
+fun LugarTarjetaDarkModePreview() {
+    ElDesvareTheme(darkTheme = true) {
+        TarjetaLugarItem(
+            lugar = DatosIniciales.lugaresPrecargados.first(),
+            distanciaTexto = "250 m",
+            onClick = {},
+            onUsarBrujula = {}
+        )
+    }
 }

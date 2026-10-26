@@ -1,10 +1,23 @@
 package com.ucompensar.eldesvare.data
 
 import android.content.Context
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.ucompensar.eldesvare.model.DatosIniciales
 import com.ucompensar.eldesvare.model.Lugar
 import com.ucompensar.eldesvare.model.TipoLugar
 import com.ucompensar.eldesvare.model.TipoVehiculo
+import com.ucompensar.eldesvare.ui.theme.ElDesvareTheme
+import com.ucompensar.eldesvare.ui.theme.screens.TarjetaLugarItem
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -87,5 +100,33 @@ class PreferenciasLocalesRepository(context: Context) {
             jsonArray.put(obj)
         }
         prefs.edit().putString("lugares_guardados", jsonArray.toString()).apply()
+    }
+}
+
+@Preview(showBackground = true, name = "Repositorio - Lugares Guardados")
+@Composable
+fun PreferenciasLocalesRepositoryPreview() {
+    ElDesvareTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = "Datos del Repositorio Offline (${DatosIniciales.lugaresPrecargados.size} lugares)",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            DatosIniciales.lugaresPrecargados.take(2).forEach { lugar ->
+                TarjetaLugarItem(
+                    lugar = lugar,
+                    distanciaTexto = "250 m",
+                    onClick = {},
+                    onUsarBrujula = {}
+                )
+            }
+        }
     }
 }

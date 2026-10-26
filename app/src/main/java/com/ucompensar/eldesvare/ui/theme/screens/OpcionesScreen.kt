@@ -45,16 +45,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.ucompensar.eldesvare.ui.theme.ElDesvareTheme
 import com.ucompensar.eldesvare.viewmodel.DesvareViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OpcionesScreen(
     viewModel: DesvareViewModel,
     onVolver: () -> Unit
 ) {
     val temaActual by viewModel.temaPreferencia.collectAsState()
+
+    OpcionesContent(
+        temaActual = temaActual,
+        onCambiarTema = { nuevoTema -> viewModel.cambiarTema(nuevoTema) },
+        onVolver = onVolver
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OpcionesContent(
+    temaActual: Int,
+    onCambiarTema: (Int) -> Unit = {},
+    onVolver: () -> Unit = {}
+) {
     var notificacionesActivas by remember { mutableStateOf(true) }
 
     Scaffold(
@@ -108,19 +124,19 @@ fun OpcionesScreen(
                         texto = "Automático (Sensor de luz)",
                         icono = Icons.Default.BrightnessAuto,
                         seleccionado = temaActual == 0,
-                        onClick = { viewModel.cambiarTema(0) }
+                        onClick = { onCambiarTema(0) }
                     )
                     TemaOpcionItem(
                         texto = "Modo Claro",
                         icono = Icons.Default.LightMode,
                         seleccionado = temaActual == 1,
-                        onClick = { viewModel.cambiarTema(1) }
+                        onClick = { onCambiarTema(1) }
                     )
                     TemaOpcionItem(
                         texto = "Modo Oscuro",
                         icono = Icons.Default.DarkMode,
                         seleccionado = temaActual == 2,
-                        onClick = { viewModel.cambiarTema(2) }
+                        onClick = { onCambiarTema(2) }
                     )
                 }
             }
@@ -213,6 +229,48 @@ fun TemaOpcionItem(
         RadioButton(
             selected = seleccionado,
             onClick = null
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Opciones / Configuración - Modo Claro")
+@Composable
+fun OpcionesScreenLightPreview() {
+    ElDesvareTheme {
+        OpcionesContent(temaActual = 0)
+    }
+}
+
+@Preview(showBackground = true, name = "Opciones / Configuración - Modo Oscuro")
+@Composable
+fun OpcionesScreenDarkPreview() {
+    ElDesvareTheme(darkTheme = true) {
+        OpcionesContent(temaActual = 2)
+    }
+}
+
+@Preview(showBackground = true, name = "Componente - Tema Opción Seleccionado")
+@Composable
+fun TemaOpcionItemSeleccionadoPreview() {
+    ElDesvareTheme {
+        TemaOpcionItem(
+            texto = "Automático (Sensor de luz)",
+            icono = Icons.Default.BrightnessAuto,
+            seleccionado = true,
+            onClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Componente - Tema Opción No Seleccionado")
+@Composable
+fun TemaOpcionItemNoSeleccionadoPreview() {
+    ElDesvareTheme {
+        TemaOpcionItem(
+            texto = "Modo Oscuro",
+            icono = Icons.Default.DarkMode,
+            seleccionado = false,
+            onClick = {}
         )
     }
 }
