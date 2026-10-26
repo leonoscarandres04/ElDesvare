@@ -39,12 +39,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.ucompensar.eldesvare.model.DatosIniciales
 import com.ucompensar.eldesvare.model.TipoLugar
 import com.ucompensar.eldesvare.model.TipoVehiculo
+import com.ucompensar.eldesvare.ui.theme.ElDesvareTheme
 import com.ucompensar.eldesvare.viewmodel.DesvareViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecomendarLugarScreen(
     viewModel: DesvareViewModel,
@@ -52,6 +54,58 @@ fun RecomendarLugarScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
+
+    RecomendarLugarContent(
+        latitudUsuario = uiState.latitudUsuario,
+        longitudUsuario = uiState.longitudUsuario,
+        onVolver = onVolver,
+        onGuardarLugar = { nombre, tipo, vehiculos, direccion, horario, telefono, lat, lng, ruta, recomPor, notas, fotoUri ->
+            viewModel.agregarLugarRecomendado(
+                nombre = nombre,
+                tipo = tipo,
+                vehiculos = vehiculos,
+                direccion = direccion,
+                horario = horario,
+                telefono = telefono,
+                latitud = lat,
+                longitud = lng,
+                rutaReferencia = ruta,
+                recomendadoPor = recomPor,
+                notas = notas,
+                fotoUri = fotoUri
+            )
+            Toast.makeText(
+                context,
+                "¡Lugar guardado como 'Sin verificar' y compartido en el mapa!",
+                Toast.LENGTH_LONG
+            ).show()
+            onVolver()
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RecomendarLugarContent(
+    latitudUsuario: Double = DatosIniciales.LAT_UCOMPENSAR,
+    longitudUsuario: Double = DatosIniciales.LNG_UCOMPENSAR,
+    onVolver: () -> Unit = {},
+    onGuardarLugar: (
+        nombre: String,
+        tipo: TipoLugar,
+        vehiculos: List<TipoVehiculo>,
+        direccion: String,
+        horario: String,
+        telefono: String,
+        latitud: Double,
+        longitud: Double,
+        rutaReferencia: String,
+        recomendadoPor: String,
+        notas: String,
+        fotoUri: String?
+    ) -> Unit = { _, _, _, _, _, _, _, _, _, _, _, _ -> }
+) {
+    val context = LocalContext.current
 
     var nombre by remember { mutableStateOf("") }
     var tipoSeleccionado by remember { mutableStateOf(TipoLugar.TALLER) }
@@ -65,8 +119,8 @@ fun RecomendarLugarScreen(
     var rutaReferencia by remember { mutableStateOf("Ruta Av. 68 hacia UCompensar") }
     var recomendadoPor by remember { mutableStateOf("") }
     var notas by remember { mutableStateOf("") }
-    var latitudTexto by remember { mutableStateOf(uiState.latitudUsuario.toString()) }
-    var longitudTexto by remember { mutableStateOf(uiState.longitudUsuario.toString()) }
+    var latitudTexto by remember { mutableStateOf(latitudUsuario.toString()) }
+    var longitudTexto by remember { mutableStateOf(longitudUsuario.toString()) }
     var fotoUriSeleccionada by remember { mutableStateOf<Uri?>(null) }
 
     val selectorImagenLauncher = rememberLauncherForActivityResult(
@@ -189,8 +243,8 @@ fun RecomendarLugarScreen(
 
             OutlinedButton(
                 onClick = {
-                    latitudTexto = uiState.latitudUsuario.toString()
-                    longitudTexto = uiState.longitudUsuario.toString()
+                    latitudTexto = latitudUsuario.toString()
+                    longitudTexto = longitudUsuario.toString()
                     Toast.makeText(context, "Ubicación GPS actual cargada", Toast.LENGTH_SHORT).show()
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -244,27 +298,20 @@ fun RecomendarLugarScreen(
                         return@Button
                     }
 
-                    viewModel.agregarLugarRecomendado(
-                        nombre = nombre,
-                        tipo = tipoSeleccionado,
-                        vehiculos = vehiculos,
-                        direccion = direccion,
-                        horario = horario,
-                        telefono = telefono,
-                        latitud = latitudTexto.toDoubleOrNull() ?: uiState.latitudUsuario,
-                        longitud = longitudTexto.toDoubleOrNull() ?: uiState.longitudUsuario,
-                        rutaReferencia = rutaReferencia,
-                        recomendadoPor = recomendadoPor,
-                        notas = notas.ifBlank { "Recomendado por la comunidad universitaria." },
-                        fotoUri = fotoUriSeleccionada?.toString()
+                    onGuardarLugar(
+                        nombre,
+                        tipoSeleccionado,
+                        vehiculos,
+                        direccion,
+                        horario,
+                        telefono,
+                        latitudTexto.toDoubleOrNull() ?: latitudUsuario,
+                        longitudTexto.toDoubleOrNull() ?: longitudUsuario,
+                        rutaReferencia,
+                        recomendadoPor,
+                        notas.ifBlank { "Recomendado por la comunidad universitaria." },
+                        fotoUriSeleccionada?.toString()
                     )
-
-                    Toast.makeText(
-                        context,
-                        "¡Lugar guardado como 'Sin verificar' y compartido en el mapa!",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    onVolver()
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -273,5 +320,21 @@ fun RecomendarLugarScreen(
                 Text("Publicar recomendación en el mapa")
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Recomendar Lugar - Modo Claro")
+@Composable
+fun RecomendarLugarScreenLightPreview() {
+    ElDesvareTheme {
+        RecomendarLugarContent()
+    }
+}
+
+@Preview(showBackground = true, name = "Recomendar Lugar - Modo Oscuro")
+@Composable
+fun RecomendarLugarScreenDarkPreview() {
+    ElDesvareTheme(darkTheme = true) {
+        RecomendarLugarContent()
     }
 }

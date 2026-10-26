@@ -63,6 +63,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
@@ -73,10 +74,13 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.ucompensar.eldesvare.model.DatosIniciales
 import com.ucompensar.eldesvare.model.Lugar
 import com.ucompensar.eldesvare.model.TipoLugar
 import com.ucompensar.eldesvare.model.TipoVehiculo
 import com.ucompensar.eldesvare.sensors.BrujulaYDistanciaHelper
+import com.ucompensar.eldesvare.ui.theme.ElDesvareTheme
+import com.ucompensar.eldesvare.viewmodel.DesvareUiState
 import com.ucompensar.eldesvare.viewmodel.DesvareViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,8 +97,6 @@ fun MapaScreen(
     val lugaresFiltrados = remember(uiState) {
         viewModel.obtenerLugaresFiltradosYOrdenados(uiState)
     }
-
-    var modoVista by remember { mutableIntStateOf(0) }
 
     val azimutDispositivo by BrujulaYDistanciaHelper.observarAzimutBrujula(context)
         .collectAsState(initial = 0f)
@@ -135,6 +137,39 @@ fun MapaScreen(
             )
         }
     }
+
+    MapaScreenContent(
+        uiState = uiState,
+        lugaresFiltrados = lugaresFiltrados,
+        azimutDispositivo = azimutDispositivo,
+        tienePermisoUbicacion = tienePermisoUbicacion,
+        onSeleccionarFiltroTipo = { viewModel.seleccionarFiltroTipo(it) },
+        onSeleccionarFiltroVehiculo = { viewModel.seleccionarFiltroVehiculo(it) },
+        onAlternarSoloVerificados = { viewModel.alternarSoloVerificados() },
+        onIrADetalle = onIrADetalle,
+        onIrARecomendar = onIrARecomendar,
+        onIrAOpciones = onIrAOpciones,
+        onSeleccionarLugarParaBrujula = { viewModel.seleccionarLugarParaBrujula(it) }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MapaScreenContent(
+    uiState: DesvareUiState,
+    lugaresFiltrados: List<Lugar>,
+    azimutDispositivo: Float = 0f,
+    modoVistaInicial: Int = 0,
+    tienePermisoUbicacion: Boolean = true,
+    onSeleccionarFiltroTipo: (TipoLugar?) -> Unit = {},
+    onSeleccionarFiltroVehiculo: (TipoVehiculo?) -> Unit = {},
+    onAlternarSoloVerificados: () -> Unit = {},
+    onIrADetalle: (Int) -> Unit = {},
+    onIrARecomendar: () -> Unit = {},
+    onIrAOpciones: () -> Unit = {},
+    onSeleccionarLugarParaBrujula: (Lugar) -> Unit = {}
+) {
+    var modoVista by remember { mutableIntStateOf(modoVistaInicial) }
 
     Scaffold(
         topBar = {
@@ -206,7 +241,7 @@ fun MapaScreen(
                 item {
                     FilterChip(
                         selected = uiState.filtroTipoLugar == null,
-                        onClick = { viewModel.seleccionarFiltroTipo(null) },
+                        onClick = { onSeleccionarFiltroTipo(null) },
                         label = { Text("Todos") }
                     )
                 }
@@ -214,7 +249,7 @@ fun MapaScreen(
                     FilterChip(
                         selected = uiState.filtroTipoLugar == tipo,
                         onClick = {
-                            viewModel.seleccionarFiltroTipo(
+                            onSeleccionarFiltroTipo(
                                 if (uiState.filtroTipoLugar == tipo) null else tipo
                             )
                         },
@@ -225,7 +260,7 @@ fun MapaScreen(
                     FilterChip(
                         selected = uiState.filtroVehiculo == vehiculo,
                         onClick = {
-                            viewModel.seleccionarFiltroVehiculo(
+                            onSeleccionarFiltroVehiculo(
                                 if (uiState.filtroVehiculo == vehiculo) null else vehiculo
                             )
                         },
@@ -235,7 +270,7 @@ fun MapaScreen(
                 item {
                     FilterChip(
                         selected = uiState.soloVerificados,
-                        onClick = { viewModel.alternarSoloVerificados() },
+                        onClick = { onAlternarSoloVerificados() },
                         label = { Text("Solo Verificados") }
                     )
                 }
@@ -305,7 +340,7 @@ fun MapaScreen(
                                 distanciaTexto = BrujulaYDistanciaHelper.formatearDistancia(distancia),
                                 onClick = { onIrADetalle(lugar.id) },
                                 onUsarBrujula = {
-                                    viewModel.seleccionarLugarParaBrujula(lugar)
+                                    onSeleccionarLugarParaBrujula(lugar)
                                     modoVista = 2
                                 }
                             )
@@ -511,5 +546,95 @@ fun BadgeVerificacion(verificado: Boolean) {
                 fontWeight = FontWeight.SemiBold
             )
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Pestaña 1 - Rutas y Lista")
+@Composable
+fun MapaScreenRutasYListaPreview() {
+    ElDesvareTheme {
+        MapaScreenContent(
+            uiState = DesvareUiState(
+                lugares = DatosIniciales.lugaresPrecargados,
+                lugarGuiaBrujula = DatosIniciales.lugaresPrecargados.first()
+            ),
+            lugaresFiltrados = DatosIniciales.lugaresPrecargados,
+            modoVistaInicial = 0
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Pestaña 2 - Vista Mapa")
+@Composable
+fun MapaScreenMapaPreview() {
+    ElDesvareTheme {
+        MapaScreenContent(
+            uiState = DesvareUiState(
+                lugares = DatosIniciales.lugaresPrecargados,
+                lugarGuiaBrujula = DatosIniciales.lugaresPrecargados.first()
+            ),
+            lugaresFiltrados = DatosIniciales.lugaresPrecargados,
+            modoVistaInicial = 1
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Pestaña 3 - Brújula Offline")
+@Composable
+fun MapaScreenBrujulaPreview() {
+    ElDesvareTheme {
+        MapaScreenContent(
+            uiState = DesvareUiState(
+                lugares = DatosIniciales.lugaresPrecargados,
+                lugarGuiaBrujula = DatosIniciales.lugaresPrecargados.first()
+            ),
+            lugaresFiltrados = DatosIniciales.lugaresPrecargados,
+            modoVistaInicial = 2,
+            azimutDispositivo = 45f
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Mapa - Modo Oscuro")
+@Composable
+fun MapaScreenDarkModePreview() {
+    ElDesvareTheme(darkTheme = true) {
+        MapaScreenContent(
+            uiState = DesvareUiState(
+                lugares = DatosIniciales.lugaresPrecargados,
+                lugarGuiaBrujula = DatosIniciales.lugaresPrecargados.first()
+            ),
+            lugaresFiltrados = DatosIniciales.lugaresPrecargados,
+            modoVistaInicial = 0
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Componente - Tarjeta Lugar")
+@Composable
+fun TarjetaLugarItemPreview() {
+    ElDesvareTheme {
+        TarjetaLugarItem(
+            lugar = DatosIniciales.lugaresPrecargados.first(),
+            distanciaTexto = "250 m",
+            onClick = {},
+            onUsarBrujula = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Componente - Badge Verificado")
+@Composable
+fun BadgeVerificadoPreview() {
+    ElDesvareTheme {
+        BadgeVerificacion(verificado = true)
+    }
+}
+
+@Preview(showBackground = true, name = "Componente - Badge Sin Verificar")
+@Composable
+fun BadgeSinVerificarPreview() {
+    ElDesvareTheme {
+        BadgeVerificacion(verificado = false)
     }
 }
