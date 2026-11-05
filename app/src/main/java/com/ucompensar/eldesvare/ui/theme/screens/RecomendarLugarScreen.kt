@@ -50,6 +50,7 @@ import com.ucompensar.eldesvare.viewmodel.DesvareViewModel
 @Composable
 fun RecomendarLugarScreen(
     viewModel: DesvareViewModel,
+    nombreUsuario: String = "",
     onVolver: () -> Unit
 ) {
     val context = LocalContext.current
@@ -58,6 +59,7 @@ fun RecomendarLugarScreen(
     RecomendarLugarContent(
         latitudUsuario = uiState.latitudUsuario,
         longitudUsuario = uiState.longitudUsuario,
+        nombreUsuario = nombreUsuario,
         onVolver = onVolver,
         onGuardarLugar = { nombre, tipo, vehiculos, direccion, horario, telefono, lat, lng, ruta, recomPor, notas, fotoUri ->
             viewModel.agregarLugarRecomendado(
@@ -89,6 +91,7 @@ fun RecomendarLugarScreen(
 fun RecomendarLugarContent(
     latitudUsuario: Double = DatosIniciales.LAT_UCOMPENSAR,
     longitudUsuario: Double = DatosIniciales.LNG_UCOMPENSAR,
+    nombreUsuario: String = "",
     onVolver: () -> Unit = {},
     onGuardarLugar: (
         nombre: String,
@@ -117,7 +120,8 @@ fun RecomendarLugarContent(
     var horario by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
     var rutaReferencia by remember { mutableStateOf("Ruta Av. 68 hacia UCompensar") }
-    var recomendadoPor by remember { mutableStateOf("") }
+    // Se llena con el nombre de la cuenta con la que inició sesión
+    var recomendadoPor by remember { mutableStateOf(nombreUsuario) }
     var notas by remember { mutableStateOf("") }
     var latitudTexto by remember { mutableStateOf(latitudUsuario.toString()) }
     var longitudTexto by remember { mutableStateOf(longitudUsuario.toString()) }

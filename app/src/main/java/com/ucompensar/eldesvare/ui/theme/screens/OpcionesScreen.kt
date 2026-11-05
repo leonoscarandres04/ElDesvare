@@ -1,6 +1,8 @@
 package com.ucompensar.eldesvare.ui.theme.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,16 +15,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,6 +42,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -43,23 +52,32 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.ucompensar.eldesvare.model.Usuario
 import com.ucompensar.eldesvare.ui.theme.ElDesvareTheme
+import com.ucompensar.eldesvare.ui.theme.NaranjaDesvare
 import com.ucompensar.eldesvare.viewmodel.DesvareViewModel
 
 @Composable
 fun OpcionesScreen(
     viewModel: DesvareViewModel,
+    usuario: Usuario? = null,
+    onCerrarSesion: () -> Unit = {},
+    onIniciarSesion: () -> Unit = {},
     onVolver: () -> Unit
 ) {
     val temaActual by viewModel.temaPreferencia.collectAsState()
 
     OpcionesContent(
         temaActual = temaActual,
+        usuario = usuario,
         onCambiarTema = { nuevoTema -> viewModel.cambiarTema(nuevoTema) },
+        onCerrarSesion = onCerrarSesion,
+        onIniciarSesion = onIniciarSesion,
         onVolver = onVolver
     )
 }
@@ -68,7 +86,10 @@ fun OpcionesScreen(
 @Composable
 fun OpcionesContent(
     temaActual: Int,
+    usuario: Usuario? = null,
     onCambiarTema: (Int) -> Unit = {},
+    onCerrarSesion: () -> Unit = {},
+    onIniciarSesion: () -> Unit = {},
     onVolver: () -> Unit = {}
 ) {
     var notificacionesActivas by remember { mutableStateOf(true) }
@@ -93,6 +114,22 @@ fun OpcionesContent(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
+            Text(
+                text = "Cuenta",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+
+            TarjetaCuenta(
+                usuario = usuario,
+                onCerrarSesion = onCerrarSesion,
+                onIniciarSesion = onIniciarSesion
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = "Apariencia",
@@ -205,6 +242,115 @@ fun OpcionesContent(
     }
 }
 
+/** Muestra quién tiene la sesión iniciada, o invita a entrar si está como invitado. */
+@Composable
+fun TarjetaCuenta(
+    usuario: Usuario?,
+    onCerrarSesion: () -> Unit,
+    onIniciarSesion: () -> Unit
+) {
+    var confirmarCierre by remember { mutableStateOf(false) }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Avatar con la inicial del nombre
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        if (usuario != null) NaranjaDesvare else MaterialTheme.colorScheme.outline,
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                if (usuario != null) {
+                    Text(
+                        text = usuario.nombre.take(1).uppercase(),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                } else {
+                    Icon(Icons.Default.Person, contentDescription = null, tint = Color.White)
+                }
+            }
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = usuario?.nombre ?: "Estás como invitado",
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = usuario?.correo ?: "Inicia sesión para recomendar lugares",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+        if (usuario != null) {
+            TextButton(
+                onClick = { confirmarCierre = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+            ) {
+                Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Cerrar sesión", fontWeight = FontWeight.SemiBold)
+            }
+        } else {
+            TextButton(
+                onClick = onIniciarSesion,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                colors = ButtonDefaults.textButtonColors(contentColor = NaranjaDesvare)
+            ) {
+                Icon(Icons.AutoMirrored.Filled.Login, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Iniciar sesión o crear cuenta", fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+
+    if (confirmarCierre) {
+        AlertDialog(
+            onDismissRequest = { confirmarCierre = false },
+            icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null) },
+            title = { Text("¿Cerrar sesión?") },
+            text = { Text("Vas a volver a la pantalla de inicio. Tus lugares recomendados no se borran.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmarCierre = false
+                        onCerrarSesion()
+                    }
+                ) {
+                    Text("Cerrar sesión", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmarCierre = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+}
+
 @Composable
 fun TemaOpcionItem(
     texto: String,
@@ -237,7 +383,10 @@ fun TemaOpcionItem(
 @Composable
 fun OpcionesScreenLightPreview() {
     ElDesvareTheme {
-        OpcionesContent(temaActual = 0)
+        OpcionesContent(
+            temaActual = 0,
+            usuario = Usuario(nombre = "Andres Morales", correo = "andres@ucompensar.edu.co")
+        )
     }
 }
 
