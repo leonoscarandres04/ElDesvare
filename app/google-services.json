@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "319901738820",
+    "project_id": "eldesvare-cbcad",
+    "storage_bucket": "eldesvare-cbcad.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:319901738820:android:d7223bef444090612fd911",
+        "android_client_info": {
+          "package_name": "com.ucompensar.eldesvare"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6fJWdGqXGz-xD70cgxz0zRCWuoEfBWU0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

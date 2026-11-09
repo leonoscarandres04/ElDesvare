@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -52,26 +53,26 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
-
     // 1. Navegación en Jetpack Compose y ViewModel (MVVM)
-    implementation("androidx.navigation:navigation-compose:2.8.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
-    // 2. Íconos extendidos de Material 3 (para motos, carros, bicicletas, brújula, etc.)
-    implementation("androidx.compose.material:material-icons-extended:1.7.0")
+    // 2. Íconos extendidos de Material 3 (la versión la da el BOM de Compose)
+    implementation(libs.androidx.compose.material.icons.extended)
 
     // 3. Google Maps SDK para Compose y Servicios de Ubicación (GPS)
-    implementation("com.google.maps.android:maps-compose:4.4.1")
-    implementation("com.google.android.gms:play-services-maps:19.0.0")
-    implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.maps)
+    implementation(libs.play.services.location)
 
     // 4. Room (Base de datos local SQLite para soporte offline)
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
 
     // 5. Coil (Para mostrar la foto tomada con cámara o elegida de galería)
-    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation(libs.coil.compose)
 
-
-
+    // 6. Firebase: Cloud Firestore (el BoM fija las versiones)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.firestore)
 }
