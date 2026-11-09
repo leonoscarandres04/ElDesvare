@@ -75,4 +75,5 @@ dependencies {
     // 6. Firebase: Cloud Firestore (el BoM fija las versiones)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth)
 }
