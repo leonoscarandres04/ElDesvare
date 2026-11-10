@@ -24,6 +24,5 @@ interface AuthRepository {
 }
 
 object ProveedorAuth {
-    // Cuando Firebase esté conectado, aquí se cambia AuthLocalRepository por la versión de Firebase
-    fun crear(context: Context): AuthRepository = AuthLocalRepository(context)
+    fun crear(context: Context): AuthRepository = AuthFirebaseRepository()
 }
