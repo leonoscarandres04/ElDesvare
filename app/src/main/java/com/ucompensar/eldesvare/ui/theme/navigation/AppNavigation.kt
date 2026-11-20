@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.ucompensar.eldesvare.ui.theme.components.SplashAnimado
 import com.ucompensar.eldesvare.ui.theme.screens.DetalleLugarScreen
 import com.ucompensar.eldesvare.ui.theme.screens.LoginScreen
 import com.ucompensar.eldesvare.ui.theme.screens.MapaScreen
@@ -31,9 +32,9 @@ fun AppNavigation(
     val navController = rememberNavController()
     val authState by authViewModel.uiState.collectAsState()
 
-    // Si ya hay una sesión guardada se entra directo al mapa
-    val pantallaInicial = remember {
-        if (authViewModel.uiState.value.usuario != null) "mapa" else "login?destino={destino}"
+    // Después del splash: si ya hay una sesión guardada se entra directo al mapa
+    val pantallaDespuesDelSplash = remember {
+        if (authViewModel.uiState.value.usuario != null) "mapa" else "login?destino=mapa"
     }
 
     // Después de entrar se limpia el historial para que "atrás" no regrese al login
@@ -57,8 +58,19 @@ fun AppNavigation(
 
     NavHost(
         navController = navController,
-        startDestination = pantallaInicial
+        startDestination = "splash"
     ) {
+        composable("splash") {
+            SplashAnimado(
+                onTerminar = {
+                    navController.navigate(pantallaDespuesDelSplash) {
+                        // Se saca el splash del historial para que "atrás" no regrese a él
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(
             route = "login?destino={destino}",
             arguments = listOf(navArgument("destino") { type = NavType.StringType; defaultValue = "mapa" })

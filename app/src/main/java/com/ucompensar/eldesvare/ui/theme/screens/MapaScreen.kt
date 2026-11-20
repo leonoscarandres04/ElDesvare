@@ -41,7 +41,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -80,6 +79,8 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.ucompensar.eldesvare.model.DatosIniciales
+import com.ucompensar.eldesvare.ui.theme.components.ChipGradiente
+import com.ucompensar.eldesvare.ui.theme.components.IconoTabSaltarin
 import com.ucompensar.eldesvare.model.Lugar
 import com.ucompensar.eldesvare.model.TipoLugar
 import com.ucompensar.eldesvare.model.TipoVehiculo
@@ -224,19 +225,19 @@ fun MapaScreenContent(
                     selected = modoVista == 0,
                     onClick = { modoVista = 0 },
                     text = { Text("Rutas y Lista") },
-                    icon = { Icon(Icons.Default.List, contentDescription = null) }
+                    icon = { IconoTabSaltarin(Icons.Default.List, seleccionado = modoVista == 0) }
                 )
                 Tab(
                     selected = modoVista == 1,
                     onClick = { modoVista = 1 },
                     text = { Text("Mapa") },
-                    icon = { Icon(Icons.Default.Map, contentDescription = null) }
+                    icon = { IconoTabSaltarin(Icons.Default.Map, seleccionado = modoVista == 1) }
                 )
                 Tab(
                     selected = modoVista == 2,
                     onClick = { modoVista = 2 },
                     text = { Text("Brújula Offline") },
-                    icon = { Icon(Icons.Default.Explore, contentDescription = null) }
+                    icon = { IconoTabSaltarin(Icons.Default.Explore, seleccionado = modoVista == 2) }
                 )
             }
 
@@ -247,39 +248,39 @@ fun MapaScreenContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item {
-                    FilterChip(
-                        selected = uiState.filtroTipoLugar == null,
-                        onClick = { onSeleccionarFiltroTipo(null) },
-                        label = { Text("Todos") }
+                    ChipGradiente(
+                        texto = "Todos",
+                        seleccionado = uiState.filtroTipoLugar == null,
+                        onClick = { onSeleccionarFiltroTipo(null) }
                     )
                 }
                 items(TipoLugar.entries) { tipo ->
-                    FilterChip(
-                        selected = uiState.filtroTipoLugar == tipo,
+                    ChipGradiente(
+                        texto = tipo.etiqueta,
+                        seleccionado = uiState.filtroTipoLugar == tipo,
                         onClick = {
                             onSeleccionarFiltroTipo(
                                 if (uiState.filtroTipoLugar == tipo) null else tipo
                             )
-                        },
-                        label = { Text(tipo.etiqueta) }
+                        }
                     )
                 }
                 items(TipoVehiculo.entries) { vehiculo ->
-                    FilterChip(
-                        selected = uiState.filtroVehiculo == vehiculo,
+                    ChipGradiente(
+                        texto = vehiculo.etiqueta,
+                        seleccionado = uiState.filtroVehiculo == vehiculo,
                         onClick = {
                             onSeleccionarFiltroVehiculo(
                                 if (uiState.filtroVehiculo == vehiculo) null else vehiculo
                             )
-                        },
-                        label = { Text(vehiculo.etiqueta) }
+                        }
                     )
                 }
                 item {
-                    FilterChip(
-                        selected = uiState.soloVerificados,
-                        onClick = { onAlternarSoloVerificados() },
-                        label = { Text("Solo Verificados") }
+                    ChipGradiente(
+                        texto = "Solo Verificados",
+                        seleccionado = uiState.soloVerificados,
+                        onClick = { onAlternarSoloVerificados() }
                     )
                 }
             }
