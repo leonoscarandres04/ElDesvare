@@ -13,11 +13,28 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+data class LugarNuevo(
+    val nombre: String,
+    val tipo: TipoLugar,
+    val vehiculos: List<TipoVehiculo>,
+    val direccion: String,
+    val horario: String,
+    val telefono: String,
+    val latitud: Double,
+    val longitud: Double,
+    val rutaReferencia: String,
+    val recomendadoPor: String,
+    val notas: String,
+    val fotoUri: String? = null,
+    val publico: Boolean = true
+)
+
 data class DesvareUiState(
     val lugares: List<Lugar> = emptyList(),
     val filtroTipoLugar: TipoLugar? = null,
     val filtroVehiculo: TipoVehiculo? = null,
     val soloVerificados: Boolean = false,
+    val filtroVisibilidad: Boolean? = null, // null = Todos, true = Públicos, false = Privados
     val latitudUsuario: Double = DatosIniciales.LAT_UCOMPENSAR,
     val longitudUsuario: Double = DatosIniciales.LNG_UCOMPENSAR,
     val lugarGuiaBrujula: Lugar? = null
@@ -64,6 +81,17 @@ class DesvareViewModel(application: Application) : AndroidViewModel(application)
         _uiState.update { it.copy(soloVerificados = !it.soloVerificados) }
     }
 
+    fun alternarFiltroVisibilidad() {
+        _uiState.update { state ->
+            val siguiente = when (state.filtroVisibilidad) {
+                null -> true   // Solo públicos
+                true -> false  // Solo privados
+                false -> null  // Todos
+            }
+            state.copy(filtroVisibilidad = siguiente)
+        }
+    }
+
     fun actualizarUbicacionUsuario(latitud: Double, longitud: Double) {
         _uiState.update { it.copy(latitudUsuario = latitud, longitudUsuario = longitud) }
     }
@@ -78,6 +106,7 @@ class DesvareViewModel(application: Application) : AndroidViewModel(application)
             .filter { state.filtroTipoLugar == null || it.tipo == state.filtroTipoLugar }
             .filter { state.filtroVehiculo == null || it.vehiculosAtendidos.contains(state.filtroVehiculo) }
             .filter { !state.soloVerificados || it.verificado }
+            .filter { state.filtroVisibilidad == null || it.publico == state.filtroVisibilidad }
             .sortedBy { lugar ->
                 BrujulaYDistanciaHelper.calcularDistanciaMetros(
                     state.latitudUsuario,
@@ -86,6 +115,39 @@ class DesvareViewModel(application: Application) : AndroidViewModel(application)
                     lugar.longitud
                 )
             }
+    }
+
+    fun agregarLugarRecomendado(
+        lugarNuevo: LugarNuevo,
+        onResultado: (Result<Boolean>) -> Unit = {}
+    ) {
+        try {
+            val nuevoId = (_uiState.value.lugares.maxOfOrNull { it.id } ?: 0) + 1
+            val nuevoLugar = Lugar(
+                id = nuevoId,
+                nombre = lugarNuevo.nombre,
+                tipo = lugarNuevo.tipo,
+                vehiculosAtendidos = lugarNuevo.vehiculos,
+                direccion = lugarNuevo.direccion,
+                horario = lugarNuevo.horario.ifBlank { "Horario por confirmar" },
+                telefono = lugarNuevo.telefono,
+                latitud = lugarNuevo.latitud,
+                longitud = lugarNuevo.longitud,
+                rutaReferencia = lugarNuevo.rutaReferencia.ifBlank { "Cerca de UCompensar" },
+                verificado = false,
+                recomendadoPor = lugarNuevo.recomendadoPor.ifBlank { "Estudiante UCompensar" },
+                notas = lugarNuevo.notas,
+                fotoUri = lugarNuevo.fotoUri,
+                publico = lugarNuevo.publico
+            )
+
+            val listaActualizada = _uiState.value.lugares + nuevoLugar
+            repositorio.guardarLugares(listaActualizada)
+            _uiState.update { it.copy(lugares = listaActualizada) }
+            onResultado(Result.success(true))
+        } catch (e: Exception) {
+            onResultado(Result.failure(e))
+        }
     }
 
     fun agregarLugarRecomendado(
@@ -100,29 +162,26 @@ class DesvareViewModel(application: Application) : AndroidViewModel(application)
         rutaReferencia: String,
         recomendadoPor: String,
         notas: String,
-        fotoUri: String?
+        fotoUri: String?,
+        publico: Boolean = true
     ) {
-        val nuevoId = (_uiState.value.lugares.maxOfOrNull { it.id } ?: 0) + 1
-        val nuevoLugar = Lugar(
-            id = nuevoId,
-            nombre = nombre,
-            tipo = tipo,
-            vehiculosAtendidos = vehiculos,
-            direccion = direccion,
-            horario = horario.ifBlank { "Horario por confirmar" },
-            telefono = telefono,
-            latitud = latitud,
-            longitud = longitud,
-            rutaReferencia = rutaReferencia.ifBlank { "Cerca de UCompensar" },
-            verificado = false,
-            recomendadoPor = recomendadoPor.ifBlank { "Estudiante UCompensar" },
-            notas = notas,
-            fotoUri = fotoUri
+        agregarLugarRecomendado(
+            LugarNuevo(
+                nombre = nombre,
+                tipo = tipo,
+                vehiculos = vehiculos,
+                direccion = direccion,
+                horario = horario,
+                telefono = telefono,
+                latitud = latitud,
+                longitud = longitud,
+                rutaReferencia = rutaReferencia,
+                recomendadoPor = recomendadoPor,
+                notas = notas,
+                fotoUri = fotoUri,
+                publico = publico
+            )
         )
-
-        val listaActualizada = _uiState.value.lugares + nuevoLugar
-        repositorio.guardarLugares(listaActualizada)
-        _uiState.update { it.copy(lugares = listaActualizada) }
     }
 
     fun reportarLugarFalso(lugarId: Int) {

@@ -67,7 +67,8 @@ class PreferenciasLocalesRepository(context: Context) {
                         recomendadoPor = obj.getString("recomendadoPor"),
                         notas = obj.getString("notas"),
                         fotoUri = obj.optString("fotoUri", "").takeIf { it.isNotBlank() },
-                        reportesFalsos = obj.optInt("reportesFalsos", 0)
+                        reportesFalsos = obj.optInt("reportesFalsos", 0),
+                        publico = obj.optBoolean("publico", true)
                     )
                 )
             }
@@ -96,6 +97,7 @@ class PreferenciasLocalesRepository(context: Context) {
                 put("notas", lugar.notas)
                 put("fotoUri", lugar.fotoUri ?: "")
                 put("reportesFalsos", lugar.reportesFalsos)
+                put("publico", lugar.publico)
             }
             jsonArray.put(obj)
         }

@@ -29,18 +29,28 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLocationAlt
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.LocalParking
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.PedalBike
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.TwoWheeler
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +58,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -63,6 +75,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -79,13 +94,14 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.ucompensar.eldesvare.model.DatosIniciales
-import com.ucompensar.eldesvare.ui.theme.components.ChipGradiente
-import com.ucompensar.eldesvare.ui.theme.components.IconoTabSaltarin
 import com.ucompensar.eldesvare.model.Lugar
 import com.ucompensar.eldesvare.model.TipoLugar
 import com.ucompensar.eldesvare.model.TipoVehiculo
 import com.ucompensar.eldesvare.sensors.BrujulaYDistanciaHelper
+import com.ucompensar.eldesvare.ui.theme.AzulDesvare
+import com.ucompensar.eldesvare.ui.theme.AzulDesvareClaro
 import com.ucompensar.eldesvare.ui.theme.ElDesvareTheme
+import com.ucompensar.eldesvare.ui.theme.NaranjaDesvare
 import com.ucompensar.eldesvare.viewmodel.DesvareUiState
 import com.ucompensar.eldesvare.viewmodel.DesvareViewModel
 
@@ -152,6 +168,7 @@ fun MapaScreen(
         onSeleccionarFiltroTipo = { viewModel.seleccionarFiltroTipo(it) },
         onSeleccionarFiltroVehiculo = { viewModel.seleccionarFiltroVehiculo(it) },
         onAlternarSoloVerificados = { viewModel.alternarSoloVerificados() },
+        onAlternarVisibilidad = { viewModel.alternarFiltroVisibilidad() },
         onIrADetalle = onIrADetalle,
         onIrARecomendar = onIrARecomendar,
         onIrAOpciones = onIrAOpciones,
@@ -170,6 +187,7 @@ fun MapaScreenContent(
     onSeleccionarFiltroTipo: (TipoLugar?) -> Unit = {},
     onSeleccionarFiltroVehiculo: (TipoVehiculo?) -> Unit = {},
     onAlternarSoloVerificados: () -> Unit = {},
+    onAlternarVisibilidad: () -> Unit = {},
     onIrADetalle: (Int) -> Unit = {},
     onIrARecomendar: () -> Unit = {},
     onIrAOpciones: () -> Unit = {},
@@ -203,7 +221,6 @@ fun MapaScreenContent(
             )
         },
         floatingActionButton = {
-            // En la brújula se oculta para no tapar la distancia ni el botón de detalles
             if (modoVista != 2) {
                 ExtendedFloatingActionButton(
                     onClick = onIrARecomendar,
@@ -220,43 +237,101 @@ fun MapaScreenContent(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            TabRow(selectedTabIndex = modoVista) {
+            TabRow(
+                selectedTabIndex = modoVista,
+                indicator = { posiciones ->
+                    if (modoVista < posiciones.size) {
+                        TabRowDefaults.SecondaryIndicator(
+                            modifier = Modifier.tabIndicatorOffset(posiciones[modoVista]),
+                            color = NaranjaDesvare
+                        )
+                    }
+                }
+            ) {
+                val colorSinSeleccionar = MaterialTheme.colorScheme.onSurfaceVariant
                 Tab(
                     selected = modoVista == 0,
                     onClick = { modoVista = 0 },
                     text = { Text("Rutas y Lista") },
-                    icon = { IconoTabSaltarin(Icons.Default.List, seleccionado = modoVista == 0) }
+                    icon = { Icon(Icons.Default.List, contentDescription = null) },
+                    selectedContentColor = NaranjaDesvare,
+                    unselectedContentColor = colorSinSeleccionar
                 )
                 Tab(
                     selected = modoVista == 1,
                     onClick = { modoVista = 1 },
                     text = { Text("Mapa") },
-                    icon = { IconoTabSaltarin(Icons.Default.Map, seleccionado = modoVista == 1) }
+                    icon = { Icon(Icons.Default.Map, contentDescription = null) },
+                    selectedContentColor = NaranjaDesvare,
+                    unselectedContentColor = colorSinSeleccionar
                 )
                 Tab(
                     selected = modoVista == 2,
                     onClick = { modoVista = 2 },
                     text = { Text("Brújula Offline") },
-                    icon = { IconoTabSaltarin(Icons.Default.Explore, seleccionado = modoVista == 2) }
+                    icon = { Icon(Icons.Default.Explore, contentDescription = null) },
+                    selectedContentColor = NaranjaDesvare,
+                    unselectedContentColor = colorSinSeleccionar
                 )
+            }
+
+            // Fila 1: tipo de vehículo (azul). Fila 2: tipo de lugar (naranja) y verificados (verde).
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(TipoVehiculo.entries) { vehiculo ->
+                    ChipFiltro(
+                        texto = vehiculo.etiqueta,
+                        icono = iconoVehiculo(vehiculo),
+                        seleccionado = uiState.filtroVehiculo == vehiculo,
+                        colorActivo = AzulDesvareClaro,
+                        colorTextoActivo = Color.White,
+                        onClick = {
+                            onSeleccionarFiltroVehiculo(
+                                if (uiState.filtroVehiculo == vehiculo) null else vehiculo
+                            )
+                        }
+                    )
+                }
+
+                item {
+                    val (textoVisibilidad, iconoVisibilidad, colorVisibilidad) = when (uiState.filtroVisibilidad) {
+                        true -> Triple("Solo públicas", Icons.Default.Public, AzulDesvareClaro)
+                        false -> Triple("Solo privadas", Icons.Default.Lock, AzulDesvare)
+                        null -> Triple("Públicas y privadas", Icons.Default.Public, AzulDesvare)
+                    }
+                    ChipFiltro(
+                        texto = textoVisibilidad,
+                        icono = iconoVisibilidad,
+                        seleccionado = uiState.filtroVisibilidad != null,
+                        colorActivo = colorVisibilidad,
+                        colorTextoActivo = Color.White,
+                        onClick = onAlternarVisibilidad
+                    )
+                }
             }
 
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .padding(start = 12.dp, end = 12.dp, top = 2.dp, bottom = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item {
-                    ChipGradiente(
+                    ChipFiltro(
                         texto = "Todos",
+                        icono = Icons.Default.Apps,
                         seleccionado = uiState.filtroTipoLugar == null,
                         onClick = { onSeleccionarFiltroTipo(null) }
                     )
                 }
                 items(TipoLugar.entries) { tipo ->
-                    ChipGradiente(
+                    ChipFiltro(
                         texto = tipo.etiqueta,
+                        icono = iconoTipoLugar(tipo),
                         seleccionado = uiState.filtroTipoLugar == tipo,
                         onClick = {
                             onSeleccionarFiltroTipo(
@@ -265,21 +340,13 @@ fun MapaScreenContent(
                         }
                     )
                 }
-                items(TipoVehiculo.entries) { vehiculo ->
-                    ChipGradiente(
-                        texto = vehiculo.etiqueta,
-                        seleccionado = uiState.filtroVehiculo == vehiculo,
-                        onClick = {
-                            onSeleccionarFiltroVehiculo(
-                                if (uiState.filtroVehiculo == vehiculo) null else vehiculo
-                            )
-                        }
-                    )
-                }
                 item {
-                    ChipGradiente(
-                        texto = "Solo Verificados",
+                    ChipFiltro(
+                        texto = "Solo verificados",
+                        icono = Icons.Default.Verified,
                         seleccionado = uiState.soloVerificados,
+                        colorActivo = VerdeVerificado,
+                        colorTextoActivo = Color.White,
                         onClick = { onAlternarSoloVerificados() }
                     )
                 }
@@ -289,7 +356,6 @@ fun MapaScreenContent(
                 0 -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        // Espacio extra abajo para que el botón "Recomendar" no tape la última tarjeta
                         contentPadding = PaddingValues(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 88.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
@@ -324,7 +390,6 @@ fun MapaScreenContent(
 
                     val mapProperties = MapProperties(isMyLocationEnabled = tienePermisoUbicacion)
 
-                    // Alto de la tarjeta "Más cercano" para correr el botón de mi ubicación debajo de ella
                     var altoTarjetaPx by remember { mutableIntStateOf(0) }
                     val altoTarjeta = with(LocalDensity.current) { altoTarjetaPx.toDp() }
 
@@ -333,7 +398,6 @@ fun MapaScreenContent(
                             modifier = Modifier.fillMaxSize(),
                             cameraPositionState = cameraPositionState,
                             properties = mapProperties,
-                            // Baja el botón de mi ubicación y sube los de zoom para que nada los tape
                             contentPadding = PaddingValues(top = altoTarjeta + 24.dp, bottom = 88.dp)
                         ) {
                             lugaresFiltrados.forEach { lugar ->
@@ -385,7 +449,6 @@ fun MapaScreenContent(
                         )
                         val rotacionFlecha = (rumboDestino - azimutDispositivo + 360f) % 360f
 
-                        // Con scroll para que la distancia y el botón se vean en pantallas pequeñas
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -537,7 +600,18 @@ fun TarjetaLugarItem(
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
-                BadgeVerificacion(verificado = lugar.verificado)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (!lugar.publico) {
+                        Icon(
+                            Icons.Default.Lock,
+                            contentDescription = "Lugar privado, solo lo ves tú",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                    }
+                    BadgeVerificacion(verificado = lugar.verificado)
+                }
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -571,6 +645,62 @@ fun TarjetaLugarItem(
             }
         }
     }
+}
+
+fun iconoTipoLugar(tipo: TipoLugar): ImageVector = when (tipo) {
+    TipoLugar.TALLER -> Icons.Default.Build
+    TipoLugar.PARQUEADERO -> Icons.Default.LocalParking
+}
+
+fun iconoVehiculo(vehiculo: TipoVehiculo): ImageVector = when (vehiculo) {
+    TipoVehiculo.CARRO -> Icons.Default.DirectionsCar
+    TipoVehiculo.MOTO -> Icons.Default.TwoWheeler
+    TipoVehiculo.BICICLETA -> Icons.Default.PedalBike
+}
+
+private val VerdeVerificado = Color(0xFF107C10)
+
+@Composable
+fun ChipFiltro(
+    texto: String,
+    icono: ImageVector,
+    seleccionado: Boolean,
+    colorActivo: Color = NaranjaDesvare,
+    colorTextoActivo: Color = AzulDesvare,
+    onClick: () -> Unit
+) {
+    // En modo oscuro los colores oscuros de la marca (azul, verde) casi no se ven sin seleccionar: se aclaran
+    val modoOscuro = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val colorVisible = if (modoOscuro && colorActivo.luminance() < 0.2f) {
+        lerp(colorActivo, Color.White, 0.6f)
+    } else {
+        colorActivo
+    }
+
+    FilterChip(
+        selected = seleccionado,
+        onClick = onClick,
+        label = { Text(texto, fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal) },
+        leadingIcon = {
+            Icon(icono, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize))
+        },
+        shape = RoundedCornerShape(50),
+        colors = FilterChipDefaults.filterChipColors(
+            iconColor = colorVisible,
+            labelColor = MaterialTheme.colorScheme.onSurface,
+            selectedContainerColor = colorActivo,
+            selectedLabelColor = colorTextoActivo,
+            selectedLeadingIconColor = colorTextoActivo
+        ),
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = seleccionado,
+            borderColor = colorVisible.copy(alpha = 0.8f),
+            selectedBorderColor = colorVisible,
+            borderWidth = 1.5.dp,
+            selectedBorderWidth = 1.5.dp
+        )
+    )
 }
 
 @Composable
@@ -612,80 +742,5 @@ fun MapaScreenRutasYListaPreview() {
             lugaresFiltrados = DatosIniciales.lugaresPrecargados,
             modoVistaInicial = 0
         )
-    }
-}
-
-@Preview(showBackground = true, name = "Pestaña 2 - Vista Mapa")
-@Composable
-fun MapaScreenMapaPreview() {
-    ElDesvareTheme {
-        MapaScreenContent(
-            uiState = DesvareUiState(
-                lugares = DatosIniciales.lugaresPrecargados,
-                lugarGuiaBrujula = DatosIniciales.lugaresPrecargados.first()
-            ),
-            lugaresFiltrados = DatosIniciales.lugaresPrecargados,
-            modoVistaInicial = 1
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Pestaña 3 - Brújula Offline")
-@Composable
-fun MapaScreenBrujulaPreview() {
-    ElDesvareTheme {
-        MapaScreenContent(
-            uiState = DesvareUiState(
-                lugares = DatosIniciales.lugaresPrecargados,
-                lugarGuiaBrujula = DatosIniciales.lugaresPrecargados.first()
-            ),
-            lugaresFiltrados = DatosIniciales.lugaresPrecargados,
-            modoVistaInicial = 2,
-            azimutDispositivo = 45f
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Mapa - Modo Oscuro")
-@Composable
-fun MapaScreenDarkModePreview() {
-    ElDesvareTheme(darkTheme = true) {
-        MapaScreenContent(
-            uiState = DesvareUiState(
-                lugares = DatosIniciales.lugaresPrecargados,
-                lugarGuiaBrujula = DatosIniciales.lugaresPrecargados.first()
-            ),
-            lugaresFiltrados = DatosIniciales.lugaresPrecargados,
-            modoVistaInicial = 0
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Componente - Tarjeta Lugar")
-@Composable
-fun TarjetaLugarItemPreview() {
-    ElDesvareTheme {
-        TarjetaLugarItem(
-            lugar = DatosIniciales.lugaresPrecargados.first(),
-            distanciaTexto = "250 m",
-            onClick = {},
-            onUsarBrujula = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Componente - Badge Verificado")
-@Composable
-fun BadgeVerificadoPreview() {
-    ElDesvareTheme {
-        BadgeVerificacion(verificado = true)
-    }
-}
-
-@Preview(showBackground = true, name = "Componente - Badge Sin Verificar")
-@Composable
-fun BadgeSinVerificarPreview() {
-    ElDesvareTheme {
-        BadgeVerificacion(verificado = false)
     }
 }

@@ -31,7 +31,8 @@ data class Lugar(
     val recomendadoPor: String,
     val notas: String,
     val fotoUri: String? = null,
-    val reportesFalsos: Int = 0
+    val reportesFalsos: Int = 0,
+    val publico: Boolean = true
 )
 
 object DatosIniciales {
